@@ -22,7 +22,7 @@
 	<c:if test="${loginMember.memberId eq diary.memberId }">
 		<form action="${ pageContext.request.contextPath }/diary/deleteDiary.do" method="post" onsubmit="return deleteSubmit();">
 			<input type="hidden" value="${diary.no}" name="no"/>
-			<button type="submit" class="deletebtn">삭제</button>
+			<button type="submit" class="deletebtn">게시글삭제</button>
 		</form>
 	</c:if>
 </div>
@@ -30,7 +30,7 @@
 <hr />
 <div id="diary-reply-container">
 	  <c:if test="${ loginMember.memberId != null }">
-		  <input type="text" class="" name="replyContent" id="replyContents" placeholder="댓글을 적어주세요" maxlength="25" required/>
+		  <input type="text" class="" name="replyContent" id="replyContent" placeholder="댓글을 적어주세요" maxlength="25" required/>
 	      
 	      <button class="btn" id="replybtn" >댓글작성</button>
 	  </c:if>
@@ -52,7 +52,7 @@ $(document).ready(function(){
 
 	/* listReply(); */
 			
-	$("#btnReply").click(function(){
+	$("#replybtn").click(function(){
 		var replyContent = $("#replyContent").val();
 		var diaryNo = ${diary.no}
 		var param = "replyContent="+replyContent+"&diaryNo="+diaryNo+"&memberId=${loginMember.memberId}";

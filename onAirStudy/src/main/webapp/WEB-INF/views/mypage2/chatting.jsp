@@ -162,10 +162,10 @@ vertical-align: text-bottom;
 					</c:if>
 					<c:if test="${chat.vaildYN ne 'Y'}">
 					<p class="otherChat bg-light p-2">${chat.chatContent }</p> 
-					</c:if>
 					<strong class="align-self-center"><fmt:formatDate value="${chat.sendDate }" pattern="yy/MM/dd HH:mm" />
-					<a href='#' class='reportModalK'>신고</a></strong></div></li>
-					
+					<a href='#' class='reportModalK'>신고</a></strong>
+					</c:if>
+					</div></li>
 					</c:if>
 				</c:forEach>
 			</div>
@@ -185,6 +185,7 @@ vertical-align: text-bottom;
 	</div>
 </div>
 <script>
+var client;
 //채팅 저장
 function insertChat(){
 	$.ajax({
@@ -232,8 +233,17 @@ function doReport(){
 				} ,
 			dataType : "json",
 			success : function(result) {
-				if(result > 0)
+				if(result > 0){
 					alert("신고가 완료되었습니다.");
+					//$('[data-no='+$("#contentIdK").val()+']').find("p").html("<b>신고된 채팅입니다.</b>");
+					//$('[data-no='+$("#contentIdK").val()+']').find("p").addClass("text-muted");
+					//$('[data-no='+$("#contentIdK").val()+']').find("a").html("");
+					client.send('/app/report/' + "${roomNo}", {}, JSON
+							.stringify({
+								contentId : $("#contentIdK").val()
+
+					}));
+					}
 			},
 			error : function(xhr, status, err) {
 				console.log("처리실패!");
@@ -268,8 +278,8 @@ $(document).ready(function() {
 		}
 
 		// 채팅 리스트를 가져올 때 시작 번호
-		// renderList 함수에서 html 코드를 보면 <li> 태그에 data-no 속성이 있는 것을 알 수 있다.
-		// ajax에서는 data- 속성의 값을 가져오기 위해 data() 함수를 제공.
+		// renderList 함수에서 html 코드의 <li> 태그에 data-no 속성으로
+		// data- 속성의 값을 가져오기 위해 data() 함수 사용
 		var endNo = $("#list-guestbook li").first().data("no") || 0;
 		console.log("endNo" + endNo);
 		$.ajax({
@@ -278,25 +288,19 @@ $(document).ready(function() {
 			type : "GET",
 			dataType : "json",
 			success : function(result) {
-				//console.log("가져온거"+result[0]);
 
-				// 컨트롤러에서 가져온 방명록 리스트는 result.data에 담겨오도록 했다.
+				// 컨트롤러에서 가져온 방명록 리스트는 result.data에 담김
 				var length = result.size;
 				if (length < 10) {
-					//console.log("resultno"+ result[0].no);
 					isEnd = true;
 				}
 				$.each(result, function(index, vo) {
 					var html = renderList(vo,0);
-					//console.log(html);
 					$("#list-guestbook").prepend(html);
 
 				})
 				var position = $('[data-no='+endNo+']').prev().offset();//위치값
 				console.log(position);
-				//$('#chat-containerK').stop().animate({scrollTop : position.top},600,'easeInQuint');
-				//window.scrollTo({top:position.top, behavior:'auto'});
-				//$(".chatcontent").animate({scrollTop:position},0);
 				document.querySelector('.chatcontent').scrollTo({top : position.top,behavior : 'auto'});
 				isScrolled = false;
 			},
@@ -370,9 +374,7 @@ $(document).ready(function() {
 		var windowHeight = $window.height();
 		var documentHeight = $(document).height();
 
-		//console.log("documentHeight:" + documentHeight + " | scrollTop:" + scrollTop + " | windowHeight: " + windowHeight );
-
-		// scrollbar의 thumb가 위의1px까지 도달 하면 리스트를 가져옴//말 잘 안들었어
+		// scrollbar의 thumb가 위의1px까지 도달 하면 리스트를 가져옴
 		if (scrollTop < 1 && isScrolled == false) {
 			isScrolled = true;
 			fetchList();
@@ -394,7 +396,7 @@ $(document).ready(function() {
 		var member = $('.content').data('member');
 		var sock = new SockJS(
 				"${pageContext.request.contextPath}/endpoint");
-		var client = Stomp.over(sock);
+		client = Stomp.over(sock);
 
 		function sendmsg() {
 			var message = messageInput.val();
@@ -416,20 +418,31 @@ $(document).ready(function() {
 			// 여기는 입장시
 			//	           일반메세지 들어오는곳         
 			client.subscribe('/subscribe/chat/'+ roomNo,function(chat) {
+				//받은 데이터
+				var content = JSON.parse(chat.body);
 				var endNo = $("#list-guestbook li").last().data("no");
 				if(isNaN(endNo))
 					endNo = 1;
 				else
 					endNo = endNo+1;
-				//받은 데이터
-				var content = JSON.parse(chat.body);
+				
 				var html = renderList(content,endNo);
 				$("#list-guestbook").append(html);
 				newAlerts(content,endNo);
 								
 							});
+			//신고내용 들어오는곳
+			client.subscribe('/subscribe/report/'+ roomNo,function(report) {
+				//받은 데이터
+				var content = JSON.parse(report.body);
+				//console.log("content=!!!!"+content.contentId);
+				$('[data-no='+content.contentId+']').find("p").html("<b>신고된 채팅입니다.</b>");
+				$('[data-no='+content.contentId+']').find("p").addClass("text-muted");
+				$('[data-no='+content.contentId+']').find("a").html("");
+								
+				});
 
-						});
+		});
 		//	         대화시
 		$('.send').click(function() {
 			//alert("눌리나?");

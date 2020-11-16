@@ -120,6 +120,30 @@ select
 		sr_opened_yn desc
 </select>
 
+<sql id="search">
+<choose>
+<when test = "search_option =='all'">
+where
+	member_id like '%' ||#{keyword}|| '%'
+	or sr_title like '%' ||#{keyword}|| '%' and
+	L.sr_no>8 and
+	sr_ended_yn != 'Y'
+</when>
+<when test="category != 0">
+ where 
+ 	sr_category = #{category} and
+    L.sr_no>8 and
+	sr_ended_yn != 'Y'
+</when>
+<otherwise>
+where
+	${search_option} like '%' ||#{keyword}|| '%' and
+	L.sr_no>8 and
+	sr_ended_yn != 'Y'	
+</otherwise>
+</choose>
+</sql>
+
 <select id="countArticle" resultType="int">
 select
     count(*)
@@ -128,42 +152,12 @@ from
 <include refid="search"/> 
 </select>
 
-<sql id="search">
-<choose>
-<!-- <when test = "member_id != null">
-	where 
-		L.sr_no>8 and
-		sr_ended_yn != 'Y'
-</when> -->
-<when test = "search_option =='all'">
-	where
-		member_id like '%' ||#{keyword}|| '%'
-
-	 or	sr_title like '%' ||#{keyword}|| '%' and
-	  L.sr_no>8 and
-	sr_ended_yn != 'Y'
-</when>
-<when test="category != 0">
-     where sr_category = #{category} and
-      L.sr_no>8 and
-	sr_ended_yn != 'Y'
-</when>
-<otherwise>
-	where
-	 ${search_option} like '%' ||#{keyword}|| '%' and
-	  L.sr_no>8 and
-	sr_ended_yn != 'Y'
-	
-</otherwise>
-</choose>
-</sql>
-
-
 <!-- 메인 스터디룸 리스트  -->
 
 <select id="selectStudyRoomList" resultMap="studyMap">
 select
-    L.*,
+       L.*,
+  W.member_id w_id,
     (select     sr_title
     from    sr_info
     where sr_no =l.sr_no) s_title,
@@ -172,12 +166,9 @@ select
     where sr_no =l.sr_no) sr_pic,
    (select    renamed_filename
     from   profile_attachment
-    where member_id = L.member_id) m_pic,
-    (select sr_no 
-     from sr_wish_list
-     where sr_no = L.sr_no) wish_no
+    where member_id = L.member_id) m_pic
  	from 
-		sr_list L
+		sr_list L left join sr_wish_list W on l.sr_no = W.sr_no
 	where
 		L.sr_no>8 and
 		sr_ended_yn != 'Y'
@@ -187,6 +178,7 @@ select
 
   	<resultMap type="map" id="studyMap">
   		<id column="sr_no" property="srNo"/>
+  		<result column="w_id" property="wId"/>
   		<result column="member_id" property="memberId"/>
   		<result column="sr_enroll_date" property="srEnrollDate"/>
   		<result column="sr_category" property="srCategory"/>
@@ -363,7 +355,7 @@ from sr_log
 			seq_sr_log_no.nextval, 
 			#{srNo}, 
 			#{memberId}, 
-			'미참여', 
+			'참여', 
 			0, 
 			'N'
 		)

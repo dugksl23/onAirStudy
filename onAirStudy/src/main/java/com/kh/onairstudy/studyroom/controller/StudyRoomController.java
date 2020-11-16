@@ -59,15 +59,13 @@ public class StudyRoomController {
 
 	//메인 페이지 스터디룸 리스트
 		@RequestMapping("/studyroom/studyroomlist.do")
-		public ModelAndView studyroomlist(ModelAndView mav) {
+		public ModelAndView studyroomlist(ModelAndView mav, HttpSession session) {
+		
 			List<StudyCategory> sCategory = studyRoomService.selectCategoryList();
 			mav.addObject("sCategory", sCategory);
 		
 			List<StudyRoomList> srList = studyRoomService.selectStudyRoomList();
 			mav.addObject("srList", srList);
-			
-			List<StudyRoomWish> selectW =  studyRoomService.selectMywish();
-			mav.addObject("selectW", selectW);
 			
 			mav.setViewName("studyroom/studyRoomList");
 			return mav;
@@ -76,9 +74,12 @@ public class StudyRoomController {
 		//방신청
 		@RequestMapping("/studyroom/applystudyroom.do")
 		public String applyS(StudyRoomWaiting srWating, @RequestParam("srNo") int srNo, 
-							@RequestParam("memberId") String memberId,
-							RedirectAttributes redirectAttr) {				
+							@RequestParam("memberId") String memberId, HttpSession session,	RedirectAttributes redirectAttr) {	
 			
+			Member loginMember = (Member)session.getAttribute("loginMember");
+	
+			System.out.println("loginMember.getMemberRole()="+loginMember.getMemberRole() );
+
 			String msg = "";
 			
 			//방 갯수 조회
@@ -88,19 +89,30 @@ public class StudyRoomController {
 			int applyR = studyRoomService.selectApplyRoom(srWating);
 			int myStudy = studyRoomService.selectMyStudy(srNo, memberId);
 			
-			if(applyR>0) {
+			if(loginMember.getMemberRole() != "p"){
 				
-					msg= "이미 신청 하신 방입니다.";
-					
+				msg= "프리미엄 회원이 아닙니다. 프리미엄 결제를 해주세요";					
+				
 			}else if(myStudy>0) {
 					
-				msg= "이미 가입되어진 방입니다.";		
+				msg= "이미 가입되어진 방입니다.";				
+
+			}
+			else if(applyR>0) {
 				
-			}else {
-				//방 신청 제한
-				if(countR >= 3) {
+				msg= "이미 신청 하신 방입니다.";
 					
-					msg= "스터디방의 갯수가 3개를 초과하여  신청 할 수 없습니다.";
+			}else if(loginMember.getMemberRole().equals("M") ){
+				msg= "프리미엄 회원이 아닙니다. 프리미엄 결제를 해주세요";	
+
+				
+			}
+			else{
+
+				//방 신청 제한
+				if(countR >= 4) {
+					
+					msg= "스터디방의 갯수가 4개를 초과하여  신청 할 수 없습니다.";
 				
 				}else {					 
 					 int result = studyRoomService.insertWating(srWating);
@@ -112,19 +124,13 @@ public class StudyRoomController {
 			return "redirect:/studyroom/studyroomlist.do";
 			
 			}
-		
-
-		
+				
 		//찜
 		@RequestMapping("/studyroom/favStudyroom.do")
 		public String favR(StudyRoomWish srWish, Model model,
 							@RequestParam("srNo") int srNo, 						 
 							@RequestParam("memberId") String memberId, 							
 							RedirectAttributes redirectAttr) {	
-			
-			
-//			List<String> ApplyW = studyRoomService.selectCheckWish(srWish);
-//			model.addAttribute("ApplyW",ApplyW);
 			
 			String msg = "";
 			int result = 0;	
@@ -208,25 +214,41 @@ public class StudyRoomController {
 		
 		//스터디방 안에서 관심 삭제
 		@RequestMapping("/studyroom/delfavStudyroom.do")
-		public String delFavR(StudyRoomWish srWish, Model model,
+		public String delFavR(StudyRoomWish srWish, StudyRoomWaiting srWating, Model model,
 							@RequestParam("srNo") int srNo, 						 
 							@RequestParam("memberId") String loginM, 							
 							RedirectAttributes redirectAttr) {	
 			
-		
+			int result = 0;			
 			String msg = "";
-			int result = 0;	
-						
-			// 찜 등록 조회
-															
+	
+			
+			
+			//방 갯수 조회
+			int countR = studyRoomService.selectParticipatingRoomCnt(loginM);
 			int wishR = studyRoomService.selectCheckWish(srWish);
 			
-			if( wishR > 0 ) {			
-								result = studyRoomService.deleteWish(srWish);
-								msg = "관심 목록에서 해제 되었습니다.";
-		
-							}
-
+				
+				//방 신청 제한
+				if(countR >= 4) {
+					
+					msg= "스터디방의 갯수가 4개를 초과하여  신청 할 수 없습니다.";
+				
+				}else {			
+					
+					// 찜 등록 조회
+					if( wishR > 0 ) {			
+										result = studyRoomService.deleteWish(srWish);								
+										result = studyRoomService.insertWating(srWating);
+										
+										msg= "신청을 완료 하였습니다.";
+								}
+					
+					  
+					  			
+						}		
+															
+			
 			redirectAttr.addFlashAttribute("msg", msg);
 			
 			return "redirect:/mypage1/mystudylist.do";
@@ -259,10 +281,10 @@ public class StudyRoomController {
 
 
 		@RequestMapping(value = "mypage1/newstudyEnroll.do", method = RequestMethod.POST)
-		public String newstudyEnroll(StudyRoomList studyroomList, Model model,
-									@RequestParam(value = "upFile", required = false) MultipartFile upFile, 
-									@RequestParam("srCategory") int srCategory,@RequestParam("srTitle") String srTitle, @RequestParam("srComment") String srComment,
-									RedirectAttributes redirectAttr,HttpSession session,HttpServletRequest request) throws IllegalStateException, IOException {
+		public String newstudyEnroll(StudyRoomList studyroomList, Model model, @RequestParam(value = "upFile", required = false) MultipartFile upFile, 
+									@RequestParam("srCategory") int srCategory,@RequestParam("srTitle") String srTitle, 
+									@RequestParam("srComment") String srComment, RedirectAttributes redirectAttr,
+									HttpSession session,HttpServletRequest request) throws IllegalStateException, IOException {
 					
 					Member loginMember = (Member)session.getAttribute("loginMember");
 					
@@ -271,8 +293,8 @@ public class StudyRoomController {
 					//방 갯수 조회
 					int countR = studyRoomService.selectParticipatingRoomCnt(loginMember.getMemberId());
 					
-					if(countR >= 3) {
-						 msg= "스터디방의 갯수가 3개를 초과하여 방을 만들 수 없습니다.";
+					if(countR >= 4) {
+						 msg= "스터디방의 갯수가 4개를 초과하여 방을 만들 수 없습니다.";
 					}else {
 						
 						//sr_list													
@@ -284,6 +306,9 @@ public class StudyRoomController {
 						List<ProfileAttachment> proList = new ArrayList<>();
 					
 						String saveDirectory = request.getServletContext().getRealPath("/resources/upload");
+						if(upFile.isEmpty()) {	
+							
+						}else {
 						
 						// 1. 파일명 생성
 						String renamedFilename = Utils.getRenamedFileName(upFile.getOriginalFilename());
@@ -296,7 +321,7 @@ public class StudyRoomController {
 						profile.setRenamedFilename(renamedFilename);
 						profile.setFilePath(saveDirectory);
 						proList.add(profile);
-						
+						}
 						
 						//sr_log
 						List <StudyRoomLog> srLog = new ArrayList<>();
@@ -390,11 +415,12 @@ public class StudyRoomController {
 			log.debug("param = {}",param);
 		
 			
-			if(count >= 3) {
+			if(count >= 4) {
 			    msg = memberId + "님은" + "참여방 개수 초과로 스터디방에 참여하실 수 없습니다";
 			}else {
 				result = studyRoomService.insertStudyLog(param);
-				msg = result == 1 ? memberId + "님이 " + "스터디방에 참여하게 되었습니다" : "참여신청 수락에 실패하였습니다";
+				msg = result == 1 ? memberId + "님이 " 
+						+ "스터디방에 참여하게 되었습니다" : "참여신청 수락에 실패하였습니다";
 			}
 			
 			redirectAttr.addAttribute("roomNum"	, roomNum);
@@ -402,6 +428,9 @@ public class StudyRoomController {
 			
 			return "redirect:/studyroom/main.do";
 		}
+		
+		
+		
 		
 		@RequestMapping("/studyroom/updateInfo.do")
 		public String updateInfo() {

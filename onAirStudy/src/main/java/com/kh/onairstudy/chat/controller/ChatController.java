@@ -18,6 +18,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.kh.onairstudy.chat.model.service.ChatService;
 import com.kh.onairstudy.chat.model.vo.Chat;
+import com.kh.onairstudy.report.model.vo.Report;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,16 +69,25 @@ public class ChatController {
     @MessageMapping("/hello/{roomNo}")
     @SendTo("/subscribe/chat/{roomNo}")
     public Chat broadcasting(Chat chat) {
-//    	log.debug("room넘어오나?{}",roomNo);
-//    	log.debug("?????????????gㅎ");
+
     	log.debug("받아온 data={}",chat);
-//    	log.debug("chat={}",chat);
-//    	Chat chat = new Chat();
-//    	chat.setMessageType("");
+
     	
         chat.setSendDate(new Date());
         
         return chat;
+    }
+	// 신고 메세지 전달
+    @MessageMapping("/report/{roomNo}")
+    @SendTo("/subscribe/report/{roomNo}")
+    public Report updateDelete(Report report) {
+
+    	log.debug("받아온 report={}",report);
+
+    	
+        //chat.setSendDate(new Date());
+        
+        return report;
     }
   //채팅 저장
     @RequestMapping("/chat/insertChat.do")

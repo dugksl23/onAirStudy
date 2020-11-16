@@ -51,14 +51,14 @@ table.type10 .even {
 	
 
 	<div class="col-lg-10 p-0" style="background-color: #FBF7FD;">
-	<div style="padding:5%">
+	<div style="padding:3%">
 		<h1>My page</h1>
 		<hr>
 		
 		
 <!-- 출석 그래프 -->		
 
-			<h3 style="margin-left:5%; margin-top:2%;" >이번달 스터디방별 출석 그래프</h3>
+			<h3 style="margin-left:5%; margin-top:2%;"><strong>이번달 스터디방별 출석 그래프</strong></h3>
 			<div class="row">
 						<div class="col-md-5" style= "margin-left:3%; margin-top:5%;">
 							<canvas id="myChart1"></canvas>
@@ -69,20 +69,22 @@ table.type10 .even {
 			
 <!-- To Do List-->
             <div class="col-lg-3 col-md-6" style="margin-left:10%; margin-top:-2%;" >
+              
               <div class="card to-do" style="border-radius:8%;">
-                <h2 class="display h4"style="margin-left:30%;">To do List<button type="button" class="btn btn-light m-2"
-					onclick="location.href='${ pageContext.request.contextPath }/scheduler/main.do'">캘린더보기</button></h2>
-                <c:if test="${ empty todoList }">
-                	<p class="text-center">캘린더에서 to do list를 등록해보세요.</p>
-				</c:if>					
-				<p class="text-center"></p>
+                <h2 class="display h4 m-2 text-center"><strong>오늘의 To do List</strong>
+                	<button type="button" class="btn btn-light m-2"
+					onclick="location.href='${ pageContext.request.contextPath }/mypage1/goTodo.do'">스케줄러 보기</button></h2>
+					<hr>
+	                <c:if test="${ empty todoList }">
+	                	<p class="text-center">캘린더에서 to do list를 등록해보세요.</p>
+					</c:if>					
+					
 	                <ul class="check-lists list-unstyled" >
-		                
 		                
 		              <c:if test="${ not empty todoList }"> 
 		                 <c:forEach items="${ todoList }" var="td" varStatus="status" end="10">
 			                  <li class="d-flex align-items-center " style="margin-left:30%;"> 	                 	
-				                    <label for="list-1" style="font-size:17px;"> - ${ td.content }</label>
+				                    <label for="list-1 text-center" style="font-size:17px;">- ${ td.content }</label>
 			                  </li>
 		                </c:forEach>
 		               </c:if>
@@ -98,7 +100,7 @@ table.type10 .even {
 		
 <!-- 공부시간 그래프 -->
 		<h3 style="margin-left:5%;">
-			일일 공부시간
+			<strong>일일 공부시간</strong>
 			<button type="button" class="btn btn-light m-2" data-toggle="modal" 
 				data-target="#exampleModal" data-whatever="@getbootstrap">시간
 				등록하기</button>
