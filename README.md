@@ -28,10 +28,13 @@
 ----
 **내가 구현한 기능**
 * 스터디 방마다 채팅
+
 ![image](https://user-images.githubusercontent.com/39455087/99373076-56ee5500-2904-11eb-953d-6deafc2fa0e0.png)
 * 개인별 쪽지
+
  ![image](https://user-images.githubusercontent.com/39455087/99373390-b2204780-2904-11eb-93e0-b46f13b6214a.png)
  ![image](https://user-images.githubusercontent.com/39455087/99373944-5d310100-2905-11eb-9eeb-1f10ab7f40bd.png)
 * 스터디방,쪽지,채팅 신고
+
 ![image](https://user-images.githubusercontent.com/39455087/99373632-fb709700-2904-11eb-8b08-0a2a5610f7f8.png)
 ![image](https://user-images.githubusercontent.com/39455087/99373705-10e5c100-2905-11eb-90c8-faadd3d113de.png)
