@@ -53,6 +53,12 @@ where rownum <=10 order by no
  		#{chatContent},
  		default
  	)
+ 	<selectKey resultType="int" keyProperty="no" order="AFTER">
+         select
+				seq_chatting_no.currval
+			from 
+				dual
+    </selectKey> 
  	
  </insert>
 </mapper>

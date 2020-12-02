@@ -71,10 +71,12 @@ public class ChatController {
     public Chat broadcasting(Chat chat) {
 
     	log.debug("받아온 data={}",chat);
-
+    	Map<String,Object> map = new HashMap<>();
+    	map.put("chat", chat);
     	
         chat.setSendDate(new Date());
-        
+        int result = chatService.insertChat(chat);
+        log.info("selectkey 사용 = {}",chat);
         return chat;
     }
 	// 신고 메세지 전달
@@ -89,14 +91,14 @@ public class ChatController {
         
         return report;
     }
-  //채팅 저장
-    @RequestMapping("/chat/insertChat.do")
-    @ResponseBody
-    public int insertChat(Chat chat) {
-//    	Map<String,Object> map = new HashMap<>();
-//    	map.put("chat", chat);
-    	int result = chatService.insertChat(chat);
-    	return result;
-    }
-    
+//  //채팅 저장
+//    @RequestMapping("/chat/insertChat.do")
+//    @ResponseBody
+//    public int insertChat(Chat chat) {
+////    	Map<String,Object> map = new HashMap<>();
+////    	map.put("chat", chat);
+//    	int result = chatService.insertChat(chat);
+//    	return result;
+//    }
+//    
 }

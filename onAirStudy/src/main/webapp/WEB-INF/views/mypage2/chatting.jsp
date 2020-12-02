@@ -178,7 +178,7 @@ vertical-align: text-bottom;
 			<div class="fix_btn row">
 				<textarea name="msg" id="msgi" rows="2" class="form-control col-sm-8"></textarea>
 				<!-- <input type="text" id="msgi" name="msg" placeholder="메세지를 입력하세요" /> -->
-				<button type="button" onclick="insertChat();" class="send col-sm-4 btn btn-secondary">보내기</button>
+				<button type="button"  class="send col-sm-4 btn btn-secondary">보내기</button>
 			</div>
 		</div>
 
@@ -200,7 +200,7 @@ function insertChat(){
 			} ,
 		dataType : "json",
 		success : function(result) {
-		
+			sendmsg();
 		},
 		error : function(xhr, status, err) {
 			console.log("처리실패!");
@@ -404,10 +404,12 @@ $(document).ready(function() {
 			if (message == "") {
 				return false;
 			}
+			//insertChat();
 			client.send('/app/hello/' + roomNo, {}, JSON
 					.stringify({
 						chatContent : message,
-						memberId : "${loginMember.memberId}"
+						memberId : "${loginMember.memberId}",
+						srNo : "${roomNo}"
 
 					}));
 
@@ -420,12 +422,13 @@ $(document).ready(function() {
 			client.subscribe('/subscribe/chat/'+ roomNo,function(chat) {
 				//받은 데이터
 				var content = JSON.parse(chat.body);
-				var endNo = $("#list-guestbook li").last().data("no");
+				var endNo = content.no;
+				/*var endNo = $("#list-guestbook li").last().data("no");
 				if(isNaN(endNo))
 					endNo = 1;
 				else
 					endNo = endNo+1;
-				
+				*/
 				var html = renderList(content,endNo);
 				$("#list-guestbook").append(html);
 				newAlerts(content,endNo);
@@ -444,10 +447,10 @@ $(document).ready(function() {
 
 		});
 		//	         대화시
-		$('.send').click(function() {
+		 $('.send').click(function() {
 			//alert("눌리나?");
 			sendmsg();
-		});
+		}); 
 
 		//채팅창 떠날시에
 		function disconnect() {
